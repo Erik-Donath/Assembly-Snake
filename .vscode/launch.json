@@ -1,5 +1,11 @@
 {
     "version": "2.0.0",
     "configurations": [
+        {
+            "command": "qemu-system-x86_64 ${workspaceFolder}/build/snake.bin; exit",
+            "name": "Run Snake in QEMU",
+            "request": "launch",
+            "type": "node-terminal"
+        }
     ]
 }

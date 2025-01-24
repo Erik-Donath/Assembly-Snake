@@ -1,5 +1,15 @@
 {
     "version": "2.0.0",
     "tasks": [
+        {
+            "type": "shell",
+            "label": "Build Snake",
+            "command": "nasm -f bin ${workspaceFolder}/src/snake.asm -o ${workspaceFolder}/build/snake.bin",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
     ]
 }
