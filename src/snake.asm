@@ -24,6 +24,10 @@ down_arrow equ 0x50
 up_arrow equ 0x48
 
 start:
+; Debug Start
+mov al, 'S'
+out debug_port, al
+
 ; Hide Cursor
 mov ah, set_cursorform
 mov ch, 0x20
@@ -42,22 +46,21 @@ int video
 mov byte [dir_x], 1
 mov byte [dir_y], 0
 
-mov byte [snake_x], 0
-mov byte [snake_y], 0
+mov byte [snake_x], 40
+mov byte [snake_y], 12
 
 loop:
-
+; wait
 mov ah, wait_service
 mov cx, 1
 mov dx, 0
 int system_services
 
-; Clear screen
-mov ah, scroll_up
-mov al, 0
-mov bh, 07h ; fg = white; bg = black
-mov cx, 0 ; top left
-mov dx, 185Fh ; bottom right
+; Clear head
+mov ah, write_char
+mov al, ' '
+mov bh, 0
+mov cx, 1
 int video
 
 ; Set Cursor pos
@@ -84,19 +87,37 @@ mov ah, [snake_y]
 add byte ah, [dir_y]
 mov byte [snake_y], ah
 
-; Check if not in bounds
+; Check if x is out of bounds
+cmp byte [snake_x], 0
+jl gameover
 cmp byte [snake_x], 80
 jge gameover
+
+; Check if y is out of bounds
+cmp byte [snake_y], 0
+jl gameover
 cmp byte [snake_y], 25
 jge gameover
 
+; Game Loop
 jmp loop
 
 gameover:
+; Debug game over
+mov al, 'G'
+out debug_port, al
+
+; wait 5 seconds
+mov ah, wait_service
+mov cx, 0xA
+mov dx, 0
+int system_services
+
+; Restart
 jmp start
 
 handle_input:
-; Check if input is available; otherwise jump to .end
+; Check if input is available
 mov ah, keystroke_status
 int keyboard
 jz .end
@@ -105,14 +126,10 @@ jz .end
 mov ah, keyboard_read
 int keyboard
 
-; Check input and set snake_d if valid
+; Set direction based on arrow keys
 .check_left:
 cmp ah, left_arrow
 jne .check_right
-
-mov al, 'L'
-out debug_port, al
-
 mov byte [dir_x], -1
 mov byte [dir_y], 0
 jmp .end
@@ -120,10 +137,6 @@ jmp .end
 .check_right:
 cmp ah, right_arrow
 jne .check_up
-
-mov al, 'R'
-out debug_port, al
-
 mov byte [dir_x], 1
 mov byte [dir_y], 0
 jmp .end
@@ -131,30 +144,23 @@ jmp .end
 .check_up:
 cmp ah, up_arrow
 jne .check_down
-
-mov al, 'U'
-out debug_port, al
-
 mov byte [dir_x], 0
 mov byte [dir_y], -1
 jmp .end
 
 .check_down:
 cmp ah, down_arrow
-
-mov al, 'D'
-out debug_port, al
-
 mov byte [dir_x], 0
 mov byte [dir_y], 1
 
 .end:
 ret
 
-
-dir_x: db 1
+; Direction
+dir_x: db 0
 dir_y: db 0
 
+; Snake head
 snake_x: db 0
 snake_y: db 0
 
