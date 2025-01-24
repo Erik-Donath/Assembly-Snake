@@ -34,10 +34,17 @@ mov ch, 0x20
 mov cl, 0
 int video
 
+; Set Cursor pos to (0, 0)
+mov ah, set_cursor_pos
+mov bh, 0
+mov dh, 0
+mov dl, 0
+int video
+
 ; Clear screen
 mov ah, scroll_up
 mov al, 0
-mov bh, 07h ; fg = white; bg = black
+mov bh, 07h ; fg = 7 white; bg = 0 black
 mov cx, 0 ; top left
 mov dx, 185Fh ; bottom right
 int video
@@ -79,13 +86,10 @@ int video
 
 ; Move player
 call handle_input
-mov ah, [snake_x]
-add byte ah, [dir_x]
-mov byte [snake_x], ah
-
-mov ah, [snake_y]
-add byte ah, [dir_y]
-mov byte [snake_y], ah
+mov ah, [dir_x]
+add byte [snake_x], ah
+mov ah, [dir_y]
+add byte [snake_y], ah
 
 ; Check if x is out of bounds
 cmp byte [snake_x], 0
@@ -107,7 +111,7 @@ gameover:
 mov al, 'G'
 out debug_port, al
 
-; wait 5 seconds
+; wait
 mov ah, wait_service
 mov cx, 0xA
 mov dx, 0
