@@ -34,13 +34,6 @@ start:
   mov cl, 0
   int video
 
-  ; Set Cursor pos to (0, 0)
-  mov ah, set_cursor_pos
-  mov bh, 0
-  mov dh, 0
-  mov dl, 0
-  int video
-
   ; Clear screen
   mov ah, scroll_up
   mov al, 0
@@ -57,9 +50,15 @@ start:
   mov byte [snake_y], 12
   
   ; Generate Food
-  mov byte [food_x], 5
-  mov byte [food_y], 5
   call generate_food
+
+  ; Set Cursor pos to (0, 0)
+  mov ah, set_cursor_pos
+  mov bh, 0
+  mov dh, 0
+  mov dl, 0
+  int video
+  
 loop:
   ; wait
   mov ah, wait_service
@@ -74,6 +73,19 @@ loop:
   mov cx, 1
   int video
 
+  ; Check if head has eaten food
+check_eaten:
+  mov al, [snake_x]
+  cmp al, [food_x]
+  jne .not_eaten
+  mov al, [snake_y]
+  cmp al, [food_y]
+  jne .not_eaten
+
+  call generate_food
+  jmp check_eaten ; If food has been generated in head
+.not_eaten:
+
   ; Set Cursor pos
   mov ah, set_cursor_pos
   mov bh, 0
@@ -87,17 +99,6 @@ loop:
   mov bh, 0
   mov cx, 1
   int video
-
-  ; Check if head has eaten food
-  mov al, [snake_x]
-  cmp al, [food_x]
-  jne .not_eaten
-  mov al, [snake_y]
-  cmp al, [food_y]
-  jne .not_eaten
-
-  call generate_food
-.not_eaten:
 
   ; Move player
   call handle_input
@@ -185,8 +186,36 @@ handle_input:
   ret
 
 generate_food:
-  inc byte [food_x]
-  inc byte [food_y]
+  ; Get current time
+  mov ah, read_time_counter
+  int timer ; time in cx:dx
+
+  ; Shuffle time value
+  mov ax, dx
+  xor dx, 0xACDC
+  rol dx, 5
+  xor dx, ax
+  add dx, 0x42
+  ror dx, 2
+  xor dx, cx
+  
+  ; Calculate food_x
+  mov al, dl
+  and al, 0x7f
+  cmp al, 80
+  jb .store_x
+  sub al, 80
+.store_x:
+  mov [food_x], al
+
+  ; Calculate food_y
+  mov al, dh
+  and al, 0x1f
+  cmp al, 25
+  jb .store_y
+  sub al, 25
+.store_y:
+  mov [food_y], al
 
   ; Set Cursor pos
   mov ah, set_cursor_pos
@@ -200,13 +229,6 @@ generate_food:
   mov al, '#'
   mov bh, 0
   mov cx, 1
-  int video
-
-  ; Set Cursor pos to head
-  mov ah, set_cursor_pos
-  mov bh, 0
-  mov dh, [snake_x]
-  mov dl, [snake_y]
   int video
 
   ret
