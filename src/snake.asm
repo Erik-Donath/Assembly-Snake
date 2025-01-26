@@ -7,6 +7,7 @@ set_cursorform equ 0x01
 set_cursor_pos equ 0x02
 scroll_up equ 0x06
 write_char equ 0x0a
+write_str equ 0x13
 
 keyboard equ 0x16
 keyboard_read equ 0x00
@@ -27,10 +28,6 @@ down_arrow equ 0x50
 up_arrow equ 0x48
 
 start:
-  ; Debug Start
-  mov al, 'S'
-  out debug_port, al
-
   ; Hide Cursor
   mov ah, set_cursorform
   mov ch, 0x20
@@ -59,6 +56,9 @@ start:
   mov byte [snake_x], 40
   mov byte [snake_y], 12
   
+  ; Generate Food
+  mov byte [food_x], 5
+  mov byte [food_y], 5
   call generate_food
 loop:
   ; wait
@@ -88,6 +88,17 @@ loop:
   mov cx, 1
   int video
 
+  ; Check if head has eaten food
+  mov al, [snake_x]
+  cmp al, [food_x]
+  jne .not_eaten
+  mov al, [snake_y]
+  cmp al, [food_y]
+  jne .not_eaten
+
+  call generate_food
+.not_eaten:
+
   ; Move player
   call handle_input
   mov ah, [dir_x]
@@ -108,12 +119,21 @@ loop:
   jge gameover
 
   ; Game Loop
+.end:
   jmp loop
 
+
 gameover:
-  ; Debug game over
-  mov al, 'G'
-  out debug_port, al
+  ; Write game over msg
+  mov ah, write_str
+  mov al, 0x1 ; wirte string and move cursor
+  mov dl, ((80 - game_over_text_len) / 2)
+  mov dh, (25 / 2)
+  xor bh, bh
+  mov bl, 0x07 ; fg = 7 white; bg = 0 black
+  mov cx, game_over_text_len
+  lea bp, [game_over_text]
+  int video
 
   ; wait
   mov ah, wait_service
@@ -165,42 +185,8 @@ handle_input:
   ret
 
 generate_food:
-  ; Load timer value
-  mov ah, read_time_counter
-  int timer ; RTC in CX:DX
-  
-  ; Load Timer-Ticks
-  ;push ds
-  ;mov ax, 0x0050
-  ;mov ds, ax
-
-  ;mov ax, [0x006C]
-  ;add dx, [0x006E]
-
-  ;pop ds
-  
-
-  ; shuffel dx
-  ;mov ax, dx
-  ;rol ax, 7
-  ;xor ax, cx
-  ;ror ax, 9
-  ;add ax, dx
-  ;xor dx, ax
-
-  ; Calculate food x
-  mov ax, dx
-  xor ah, ah
-  mov bl, 80
-  mov [food_x], al
-
-  ; Calculate food y
-  mov ax, dx
-  shr ax, 8
-  xor ah, ah
-  mov bl, 25
-  div bl
-  mov [food_y], al
+  inc byte [food_x]
+  inc byte [food_y]
 
   ; Set Cursor pos
   mov ah, set_cursor_pos
@@ -216,11 +202,11 @@ generate_food:
   mov cx, 1
   int video
 
-; Set Cursor pos
+  ; Set Cursor pos to head
   mov ah, set_cursor_pos
   mov bh, 0
-  mov dh, 0
-  mov dl, 0
+  mov dh, [snake_x]
+  mov dl, [snake_y]
   int video
 
   ret
@@ -236,6 +222,9 @@ snake_y: db 0
 ; Food positon
 food_x: db 0
 food_y: db 0
+
+game_over_text db "Game Over!"
+game_over_text_len equ $ - game_over_text
 
 ; End
 times 510 - ($ - $$) db 0
