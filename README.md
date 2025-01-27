@@ -40,7 +40,7 @@ You can choose between the following commands to run the game in QEMU:
 You can manually run the game in QEMU using one of these commands:
 1. Run the binary directly: ``` qemu-system-i386 -drive format=raw,file=build/snake.bin ```
 2. Run the disk image: ``` qemu-system-i386 -drive format=raw,file=build/snake.img ```
-3. Run the ISO file: ``` qemu-system-i386 -drive format=raw,file=build/snake.iso ```
+3. Run the ISO file: ``` qemu-system-i386 -cdrom build/snake.iso ```
 
 ---
 
