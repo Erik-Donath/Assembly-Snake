@@ -4,9 +4,9 @@ ISO_TOOL = genisoimage
 QEMU = qemu-system-i386
 
 BOOTSECTOR = src/snake.asm
-BINFILE = build/snake.bin
-IMGFILE = build/snake.img
-ISOFILE = build/snake.iso
+BINFILE = build/bin/snake.bin
+IMGFILE = build/img/snake.img
+ISOFILE = build/iso/snake.iso
 
 all: $(BINFILE) $(IMGFILE) $(ISOFILE)
 img: $(IMGFILE)
@@ -22,7 +22,7 @@ $(IMGFILE): $(BINFILE)
 
 $(ISOFILE): $(BINFILE)
 	@mkdir -p $(dir $@)
-	$(ISO_TOOL) -o $@ -b $(BINFILE) -no-emul-boot -boot-load-size 4 -boot-info-table .
+	$(ISO_TOOL) -o $@ -b snake.img -no-emul-boot -boot-load-size 4 -boot-info-table build/img/
 
 run-bin: $(BINFILE)
 	$(QEMU) -drive format=raw,file=$(BINFILE)

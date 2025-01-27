@@ -19,7 +19,7 @@ To build the binary (`.bin`), disk image (`.img`), and ISO file (`.iso`), simply
    *(Ensure NASM is installed on your system.)*
 3. Create additional formats:
    - Disk image:``` cp build/snake.bin build/snake.img ```
-   - ISO file:``` genisoimage -o build/snake.iso -b build/snake.bin -no-emul-boot -boot-load-size 4 -boot-info-table . ```
+   - ISO file:``` genisoimage -o build/iso/snake.iso -b snake.bin -no-emul-boot -boot-load-size 4 -boot-info-table build/bin/ ```
      *(Ensure `genisoimage` is installed.)*
 
 ### Windows
@@ -38,9 +38,9 @@ You can choose between the following commands to run the game in QEMU:
 
 ### Linux, macOS, and Windows
 You can manually run the game in QEMU using one of these commands:
-1. Run the binary directly: ``` qemu-system-i386 -drive format=raw,file=build/snake.bin ```
-2. Run the disk image: ``` qemu-system-i386 -drive format=raw,file=build/snake.img ```
-3. Run the ISO file: ``` qemu-system-i386 -cdrom build/snake.iso ```
+1. Run the binary directly: ``` qemu-system-i386 -drive format=raw,file=build/bin/snake.bin ```
+2. Run the disk image: ``` qemu-system-i386 -drive format=raw,file=build/img/snake.img ```
+3. Run the ISO file: ``` qemu-system-i386 -cdrom build/iso/snake.iso ```
 
 ---
 
